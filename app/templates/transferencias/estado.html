@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Transferencias{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-header-left"><div class="page-title">🔀 Transferencias de Detenidos</div></div></div>
+<div class="card">
+  {% if transferencias %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujeto</th><th>Origen</th><th>Destino</th><th>Estado</th><th>Fecha</th></tr></thead>
+      <tbody>
+        {% for t in transferencias %}
+        <tr>
+          <td class="font-bold">{{ t.sujeto.nombre_completo }}</td>
+          <td class="td-mono">{{ t.comisaria_origen_codigo }}</td>
+          <td class="td-mono">{{ t.comisaria_destino_codigo }}</td>
+          <td><span class="badge {% if t.estado == 'completada' %}green{% elif t.estado == 'en_transito' %}amber{% elif t.estado == 'rechazada' %}red{% else %}cyan{% endif %}">{{ t.estado }}</span></td>
+          <td class="td-mono text-xs">{{ t.iniciada_en.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-state-icon">🔀</div><div class="empty-state-title">Sin transferencias registradas</div></div>
+  {% endif %}
+</div>
+{% endblock %}

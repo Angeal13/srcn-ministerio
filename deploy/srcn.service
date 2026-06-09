@@ -1,0 +1,66 @@
+# ╔══════════════════════════════════════════════╗
+# ║  BIOKO HEALTH — Servicio systemd              ║
+# ║  Guardar en: /etc/systemd/system/             ║
+# ║              srcn.service             ║
+# ╚══════════════════════════════════════════════╝
+#
+# Comandos de gestión:
+#   sudo systemctl enable srcn
+#   sudo systemctl start  srcn
+#   sudo systemctl status srcn
+#   sudo systemctl restart srcn
+#   sudo journalctl -u srcn -f
+
+[Unit]
+Description=SRCN — Sistema de Salud Guinea Ecuatorial
+Documentation=https://github.com/srcn/sistema
+After=network.target mysqld.service
+Wants=mysqld.service
+
+[Service]
+Type=notify
+
+# Usuario y grupo (no ejecutar como root)
+User=bioko
+Group=bioko
+
+# Directorio de trabajo
+WorkingDirectory=/opt/srcn
+
+# Cargar variables de entorno
+EnvironmentFile=/opt/srcn/.env
+
+# Crear directorios necesarios antes de arrancar
+ExecStartPre=/bin/mkdir -p /run/srcn
+ExecStartPre=/bin/mkdir -p /var/log/srcn
+ExecStartPre=/bin/chown bioko:bioko /run/srcn /var/log/srcn
+ExecStartPre=/bin/mkdir -p /opt/srcn/uploads /opt/srcn/reports
+
+# Comando de inicio
+ExecStart=/opt/srcn/venv/bin/gunicorn \
+    --config /opt/srcn/gunicorn.conf.py \
+    "app:create_app('production')"
+
+# Recarga sin tiempo de inactividad
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Timeout de parada
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+# Reinicio automático en fallo
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Hardening de seguridad
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/srcn /var/log/srcn /run/srcn
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

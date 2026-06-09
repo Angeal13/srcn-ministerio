@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SRCN{% endblock %} — {{ station_code }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/srcn.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="{{ url_for('sujetos.dashboard') }}" class="topbar-brand">
+    <span class="brand-badge">SRCN</span>
+    <span class="brand-name">Registro Criminal Nacional</span>
+  </a>
+  <span class="topbar-station">{{ station_code }}</span>
+
+  <div class="topbar-spacer"></div>
+
+  <div class="topbar-alerts">
+    <!-- Intranet status -->
+    <div style="display:flex;align-items:center;gap:.4rem">
+      <div class="intranet-dot" id="intranet-dot" title="Estado intranet"></div>
+      <span class="text-xs text-muted">Intranet</span>
+    </div>
+
+    {% if warrants_count > 0 %}
+    <a href="{{ url_for('warrants.lista') }}" class="alert-pill red">
+      🚨 {{ warrants_count }} Warrant{% if warrants_count != 1 %}s{% endif %}
+    </a>
+    {% endif %}
+
+    {% if alertas_count > 0 %}
+    <a href="{{ url_for('warrants.alertas') }}" class="alert-pill amber">
+      ⚠ {{ alertas_count }} Alerta{% if alertas_count != 1 %}s{% endif %}
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- User menu -->
+  <div class="topbar-user" tabindex="0">
+    <div class="user-avatar">{{ current_user.nombre_completo[:2].upper() if current_user.is_authenticated else '?' }}</div>
+    <span>{{ current_user.nombre_completo.split()[0] if current_user.is_authenticated else '' }}</span>
+    <span class="text-xs text-muted">▾</span>
+    <div class="user-menu">
+      <div style="padding:.5rem 1rem .35rem">
+        <div class="text-sm font-bold">{{ current_user.nombre_completo if current_user.is_authenticated else '' }}</div>
+        <div class="text-xs text-muted">{{ current_user.rol|upper if current_user.is_authenticated else '' }}</div>
+      </div>
+      <div class="divider"></div>
+      <a href="{{ url_for('auth.cambiar_password') }}">🔑 Cambiar contraseña</a>
+      {% if current_user.es_admin %}
+      <a href="{{ url_for('admin.panel') }}">⚙ Administración</a>
+      {% endif %}
+      <div class="divider"></div>
+      <a href="{{ url_for('auth.logout') }}" style="color:var(--red)">⏻ Cerrar sesión</a>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-label">Principal</div>
+      <a href="{{ url_for('sujetos.dashboard') }}" class="nav-item {% if request.endpoint and 'dashboard' in request.endpoint %}active{% endif %}">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a href="{{ url_for('sujetos.lista') }}" class="nav-item {% if request.blueprint == 'sujetos' and request.endpoint != 'sujetos.dashboard' %}active{% endif %}">
+        <span class="nav-icon">👤</span> Sujetos
+      </a>
+      <a href="{{ url_for('detenciones.nueva') }}" class="nav-item">
+        <span class="nav-icon">📋</span> Nueva Detención
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Warrants</div>
+      <a href="{{ url_for('warrants.lista') }}" class="nav-item {% if request.blueprint == 'warrants' and request.endpoint != 'warrants.alertas' %}active{% endif %}">
+        <span class="nav-icon">⚖️</span> Órdenes Activas
+        {% if warrants_count > 0 %}
+        <span class="nav-badge">{{ warrants_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('warrants.alertas') }}" class="nav-item {% if request.endpoint == 'warrants.alertas' %}active{% endif %}">
+        <span class="nav-icon">🚨</span> Alertas Prófugos
+        {% if alertas_count > 0 %}
+        <span class="nav-badge amber">{{ alertas_count }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Gestión</div>
+      <a href="{{ url_for('transferencias.estado') }}" class="nav-item {% if request.blueprint == 'transferencias' %}active{% endif %}">
+        <span class="nav-icon">🔀</span> Transferencias
+      </a>
+      {% if current_user.es_jefe %}
+      <a href="{{ url_for('estadisticas.index') }}" class="nav-item {% if request.blueprint == 'estadisticas' %}active{% endif %}">
+        <span class="nav-icon">📈</span> Estadísticas
+      </a>
+      {% endif %}
+    </div>
+
+    {% if current_user.es_admin %}
+    <div class="nav-section">
+      <div class="nav-section-label">Sistema</div>
+      <a href="{{ url_for('red.panel') }}" class="nav-item {% if request.blueprint == 'red' %}active{% endif %}">
+        <span class="nav-icon">🌐</span> Red / Sync
+      </a>
+      <a href="{{ url_for('admin.panel') }}" class="nav-item {% if request.blueprint == 'admin' %}active{% endif %}">
+        <span class="nav-icon">⚙️</span> Administración
+      </a>
+    </div>
+    {% endif %}
+
+    <div style="margin-top:auto;padding:.75rem 1rem;border-top:1px solid var(--border)">
+      <div class="text-xs text-muted">{{ station_name }}</div>
+      <div class="text-xs" style="color:var(--text-muted);margin-top:.15rem;font-family:var(--font-mono)">
+        {% if intranet_mode %}🟢 Intranet{% else %}🟡 Local{% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert-banner {{ category if category in ['danger','warning','success','info'] else 'info' }}">
+          {% if category == 'danger' %}🚫{% elif category == 'warning' %}⚠{% elif category == 'success' %}✅{% else %}ℹ{% endif %}
+          {{ message }}
+          <button class="dismiss" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;font-size:1rem">✕</button>
+        </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/srcn.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Active warrant alerts at top -->
+{% if alertas %}
+{% for a in alertas[:2] %}
+<div class="warrant-alert">
+  <div class="warrant-alert-icon">🚨</div>
+  <div class="warrant-alert-text">
+    <div class="label">Alerta Prófugo — {{ a.provincia_origen }}</div>
+    <div class="subject">{{ a.sujeto_nombres }} {{ a.sujeto_apellidos }}</div>
+    <div class="meta">DNI: {{ a.sujeto_dni or 'N/D' }} · Urgencia: {{ a.nivel_urgencia|upper }} · {{ a.creada_en.strftime('%d/%m/%Y %H:%M') }}</div>
+  </div>
+  <a href="{{ url_for('warrants.alertas') }}" class="btn btn-danger btn-sm" style="margin-left:auto;flex-shrink:0">Ver todas</a>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card red">
+    <div class="stat-label">Warrants Activos</div>
+    <div class="stat-value">{{ warrants_activos }}</div>
+    <div class="stat-sub">órdenes de arresto nacionales</div>
+    <div class="stat-icon">⚖️</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-label">Alertas Prófugos</div>
+    <div class="stat-value">{{ alertas_profugo }}</div>
+    <div class="stat-sub">individuos buscados activos</div>
+    <div class="stat-icon">🚨</div>
+  </div>
+  <div class="stat-card cyan">
+    <div class="stat-label">Detenciones Hoy</div>
+    <div class="stat-value">{{ detenciones_hoy }}</div>
+    <div class="stat-sub">bookings registrados</div>
+    <div class="stat-icon">📋</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Total Sujetos</div>
+    <div class="stat-value">{{ total_sujetos }}</div>
+    <div class="stat-sub">{{ nuevos_hoy }} nuevos hoy</div>
+    <div class="stat-icon">👤</div>
+  </div>
+</div>
+
+<!-- Quick DNI Check -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">🔍 Verificación Rápida de DNI</div>
+    <span class="text-xs text-muted">Consulta antecedentes y warrants en tiempo real</span>
+  </div>
+  <div class="card-body">
+    <div class="dni-lookup" style="max-width:480px">
+      <div class="search-bar">
+        <div class="search-input-wrap" style="flex:1">
+          <span class="search-icon">🪪</span>
+          <input type="text" id="dni-lookup-input" class="form-control"
+                 placeholder="Introducir número de documento nacional…" autocomplete="off">
+        </div>
+        <a href="{{ url_for('sujetos.nuevo') }}" class="btn btn-ghost btn-sm">+ Registrar</a>
+      </div>
+      <div id="dni-lookup-result" class="dni-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent detentions -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">📋 Detenciones Recientes</div>
+    <a href="{{ url_for('detenciones.nueva') }}" class="btn btn-primary btn-sm">+ Nueva detención</a>
+  </div>
+  {% if ultimas_detenciones %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Sujeto</th>
+          <th>Expediente</th>
+          <th>Motivo</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in ultimas_detenciones %}
+        <tr>
+          <td>
+            <div class="font-bold">{{ d.sujeto.nombre_completo }}</div>
+            {% if d.sujeto.es_buscado %}
+            <span class="buscado-indicator"><span class="buscado-dot"></span>BUSCADO</span>
+            {% endif %}
+          </td>
+          <td class="td-mono">{{ d.sujeto.numero_expediente }}</td>
+          <td>{{ d.motivo[:60] }}{% if d.motivo|length > 60 %}…{% endif %}</td>
+          <td>
+            {% if d.estado == 'activo' %}<span class="badge cyan">Activo</span>
+            {% elif d.estado == 'liberado' %}<span class="badge gray">Liberado</span>
+            {% elif d.estado == 'trasladado' %}<span class="badge amber">Trasladado</span>
+            {% else %}<span class="badge gray">{{ d.estado }}</span>
+            {% endif %}
+          </td>
+          <td class="td-mono text-xs">{{ d.fecha_detencion.strftime('%d/%m %H:%M') }}</td>
+          <td><a href="{{ url_for('detenciones.ver', id=d.id) }}" class="btn btn-ghost btn-sm">Ver</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📋</div>
+    <div class="empty-state-title">Sin detenciones hoy</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

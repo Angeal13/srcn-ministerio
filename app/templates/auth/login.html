@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SRCN — Acceso Restringido</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/srcn.css') }}">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="badge-big">SRCN</span>
+      <span class="system-name">Sistema de Registro Criminal Nacional</span>
+      <span class="station-name">{{ station_name }}</span>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert-banner {{ category }}" style="margin-bottom:1rem">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+      <div class="form-group" style="margin-bottom:.85rem">
+        <label class="form-label">Número de placa / Usuario</label>
+        <input type="text" name="nombre_usuario" class="form-control" autocomplete="username"
+               placeholder="usuario" required autofocus>
+      </div>
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label class="form-label">Contraseña</label>
+        <input type="password" name="password" class="form-control" autocomplete="current-password"
+               placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-full" style="justify-content:center;padding:.65rem">
+        Iniciar sesión
+      </button>
+    </form>
+
+    <div class="login-footer">
+      República de Guinea Ecuatorial · Ministerio del Interior
+    </div>
+    <div class="login-restricted">Acceso restringido — uso oficial</div>
+  </div>
+</div>
+</body>
+</html>

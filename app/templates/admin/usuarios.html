@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left"><div class="page-title">Gestión de Usuarios</div></div>
+  <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary">+ Nuevo usuario</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Comisaría</th><th>Estado</th><th>Último acceso</th></tr></thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td class="font-bold">{{ u.nombre_completo }}</td>
+          <td class="td-mono">{{ u.nombre_usuario }}</td>
+          <td><span class="badge {% if u.rol in ['superadmin','jefe'] %}red{% elif u.rol == 'inspector' %}amber{% else %}gray{% endif %}">{{ u.rol|upper }}</span></td>
+          <td>{{ u.comisaria.nombre if u.comisaria else '—' }}</td>
+          <td><span class="badge {% if u.activo %}green{% else %}gray{% endif %}">{{ 'Activo' if u.activo else 'Inactivo' }}</span></td>
+          <td class="td-mono text-xs">{{ u.ultimo_acceso.strftime('%d/%m/%Y %H:%M') if u.ultimo_acceso else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

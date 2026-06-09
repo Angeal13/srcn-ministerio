@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Nueva Detención{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Registrar Detención / Booking</div>
+    <div class="page-breadcrumb">SRCN <span>›</span> Nueva Detención</div>
+  </div>
+</div>
+<form method="POST">
+  <input type="hidden" name="warrant_id" id="warrant_id_hidden">
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
+      <div class="card">
+        <div class="card-header"><div class="card-title">👤 Identificación del Detenido</div></div>
+        <div class="card-body">
+          {% if sujeto %}
+          <input type="hidden" name="sujeto_id" value="{{ sujeto.id }}">
+          <div class="subject-header" style="padding:.75rem;margin-bottom:.75rem">
+            <div class="subject-avatar">👤</div>
+            <div>
+              <div class="subject-name">{{ sujeto.nombre_completo }}</div>
+              <div class="subject-id">{{ sujeto.numero_expediente }}</div>
+              {% if sujeto.es_buscado %}<span class="buscado-indicator mt-1"><span class="buscado-dot"></span>BUSCADO</span>{% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div class="form-group" style="margin-bottom:1rem">
+            <label class="form-label">Buscar sujeto por nombre o DNI <span class="required">*</span></label>
+            <div class="autocomplete-wrap">
+              <input type="text" id="sujeto-search" class="form-control" placeholder="Nombre, expediente o DNI…" autocomplete="off">
+              <input type="hidden" name="sujeto_id" id="sujeto_id" required>
+              <div id="sujeto-autocomplete" class="autocomplete-list" style="display:none"></div>
+            </div>
+            <span class="form-hint">Si el sujeto no está registrado, <a href="{{ url_for('sujetos.nuevo') }}">regístrelo primero</a>.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Verificación rápida por DNI</label>
+            <div class="dni-lookup">
+              <input type="text" id="dni-lookup-input" class="form-control" placeholder="DNI del detenido…">
+              <div id="dni-lookup-result" class="dni-result"></div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 Detalles de la Detención</div></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">Motivo de la detención <span class="required">*</span></label>
+              <input type="text" name="motivo" class="form-control" required placeholder="Motivo principal del arresto">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Lugar de detención</label>
+              <input type="text" name="lugar_detencion" class="form-control" placeholder="Calle, barrio, coordenadas…">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Descripción / Observaciones</label>
+              <textarea name="descripcion" class="form-control" rows="3" placeholder="Circunstancias del arresto, comportamiento, objetos incautados…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">⚖️ Cargos</div></div>
+        <div class="card-body">
+          {% if categorias %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            {% for cat in categorias %}
+            <label style="display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;background:var(--navy-3);border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;font-size:.82rem">
+              <input type="checkbox" name="categoria_id" value="{{ cat.id }}" style="accent-color:var(--cyan)">
+              <span>
+                <span class="badge {% if cat.gravedad == 'crimen' %}red{% elif cat.gravedad == 'delito_grave' %}amber{% else %}gray{% endif %}" style="font-size:.6rem">{{ cat.gravedad }}</span>
+                {{ cat.nombre }}
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-sm text-muted">Sin categorías configuradas. <a href="{{ url_for('admin.panel') }}">Configurar →</a></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">✅ Confirmar</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:.75rem">
+        <div class="alert-banner info" style="font-size:.78rem">
+          ℹ El sistema verificará automáticamente si existe un warrant activo para el sujeto identificado.
+        </div>
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;padding:.7rem">
+          Registrar Detención
+        </button>
+        <a href="{{ url_for('sujetos.dashboard') }}" class="btn btn-ghost w-full" style="justify-content:center">Cancelar</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

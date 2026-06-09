@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Warrants Activos{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Órdenes de Arresto</div>
+  </div>
+  <div class="flex gap-1">
+    <a href="?estado=activo" class="btn {% if estado == 'activo' %}btn-danger{% else %}btn-ghost{% endif %} btn-sm">Activos</a>
+    <a href="?estado=ejecutado" class="btn {% if estado == 'ejecutado' %}btn-primary{% else %}btn-ghost{% endif %} btn-sm">Ejecutados</a>
+    <a href="?estado=cancelado" class="btn {% if estado == 'cancelado' %}btn-ghost{% else %}btn-ghost{% endif %} btn-sm">Cancelados</a>
+  </div>
+</div>
+<div class="card">
+  {% if warrants.items %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujeto</th><th>Descripción</th><th>Provincia Emisora</th><th>Urgencia</th><th>Emitido</th><th></th></tr></thead>
+      <tbody>
+        {% for w in warrants.items %}
+        <tr>
+          <td>
+            <div class="font-bold">{{ w.sujeto.nombre_completo }}</div>
+            <div class="td-mono">{{ w.sujeto.numero_expediente }}</div>
+          </td>
+          <td>{{ w.descripcion[:70] }}{% if w.descripcion|length > 70 %}…{% endif %}</td>
+          <td class="td-mono">{{ w.provincia_emisora }}</td>
+          <td>
+            <span class="badge {% if w.nivel_urgencia == 'critico' %}red{% elif w.nivel_urgencia == 'urgente' %}amber{% else %}cyan{% endif %}">
+              {{ w.nivel_urgencia|upper }}
+            </span>
+          </td>
+          <td class="td-mono text-xs">{{ w.fecha_emision.strftime('%d/%m/%Y') }}</td>
+          <td><a href="{{ url_for('sujetos.ver', id=w.sujeto_id) }}" class="btn btn-ghost btn-sm">Ver sujeto</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">⚖️</div>
+    <div class="empty-state-title">Sin warrants {{ estado }}s</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

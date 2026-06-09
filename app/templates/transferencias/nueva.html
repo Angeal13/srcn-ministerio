@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Transferir Detenido{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-header-left"><div class="page-title">🔀 Transferir Detenido</div></div></div>
+<form method="POST">
+  <div class="card" style="max-width:500px">
+    <div class="card-header"><div class="card-title">{{ sujeto.nombre_completo }}</div></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Código comisaría destino <span class="required">*</span></label><input type="text" name="comisaria_destino_codigo" class="form-control" required placeholder="Ej. COM-LIT-002"></div>
+        <div class="form-group"><label class="form-label">Provincia destino <span class="required">*</span></label>
+          <select name="provincia_destino" class="form-control" required>
+            <option value="">— Seleccionar —</option>
+            <option value="BN">Bioko Norte</option><option value="BS">Bioko Sur</option>
+            <option value="LIT">Litoral</option><option value="CS">Centro Sur</option>
+            <option value="KN">Kié-Ntem</option><option value="WN">Wele-Nzas</option>
+            <option value="ANB">Annobón</option>
+          </select>
+        </div>
+        <div class="form-group full"><label class="form-label">Motivo <span class="required">*</span></label><textarea name="motivo" class="form-control" required rows="3"></textarea></div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:.5rem;cursor:pointer"><input type="checkbox" name="urgente" style="accent-color:var(--cyan)"> <span class="form-label" style="margin:0">Transferencia urgente</span></label></div>
+      </div>
+    </div>
+    <div class="card-footer flex gap-1">
+      <button type="submit" class="btn btn-primary">Iniciar transferencia</button>
+      <a href="{{ url_for('detenciones.ver', id=detencion.id) }}" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

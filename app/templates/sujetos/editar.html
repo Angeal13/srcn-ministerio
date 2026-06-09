@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Editar — {{ sujeto.nombre_completo }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb"><a href="{{ url_for('sujetos.ver', id=sujeto.id) }}">{{ sujeto.numero_expediente }}</a> <span>›</span> Editar</div>
+    <div class="page-title">Editar Perfil: {{ sujeto.nombre_completo }}</div>
+  </div>
+</div>
+<form method="POST">
+  <div class="card" style="max-width:680px">
+    <div class="card-header"><div class="card-title">📄 Datos del Sujeto</div></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Nombres</label><input type="text" name="nombres" class="form-control" value="{{ sujeto.nombres }}" required></div>
+        <div class="form-group"><label class="form-label">Apellidos</label><input type="text" name="apellidos" class="form-control" value="{{ sujeto.apellidos }}" required></div>
+        <div class="form-group"><label class="form-label">Fecha nacimiento</label><input type="date" name="fecha_nacimiento" class="form-control" value="{{ sujeto.fecha_nacimiento.isoformat() if sujeto.fecha_nacimiento else '' }}"></div>
+        <div class="form-group"><label class="form-label">Sexo</label>
+          <select name="sexo" class="form-control"><option value="">—</option><option value="M" {% if sujeto.sexo=='M' %}selected{% endif %}>Masculino</option><option value="F" {% if sujeto.sexo=='F' %}selected{% endif %}>Femenino</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" value="{{ sujeto.nacionalidad or '' }}"></div>
+        <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" name="telefono" class="form-control" value="{{ sujeto.telefono or '' }}"></div>
+        <div class="form-group full"><label class="form-label">Dirección</label><input type="text" name="direccion" class="form-control" value="{{ sujeto.direccion or '' }}"></div>
+        <div class="form-group"><label class="form-label">Nivel de Riesgo</label>
+          <select name="nivel_riesgo" class="form-control">
+            {% for nivel in ['bajo','medio','alto','critico'] %}
+            <option value="{{ nivel }}" {% if sujeto.nivel_riesgo == nivel %}selected{% endif %}>{{ nivel|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer flex gap-1">
+      <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      <a href="{{ url_for('sujetos.ver', id=sujeto.id) }}" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Provincial{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">{% if es_central is defined and es_central %}🏛 Dashboard Nacional — Ministerio del Interior{% else %}🏛 Dashboard Provincial — {{ province_code }}{% endif %}</div>
+    <div class="page-breadcrumb">
+      <form style="display:inline-flex;gap:.4rem;align-items:center">
+        <span class="text-muted">Últimos</span>
+        <select name="dias" onchange="this.form.submit()" class="form-control" style="width:80px;padding:.25rem .5rem;font-size:.78rem">
+          <option value="7" {% if dias == 7 %}selected{% endif %}>7 días</option>
+          <option value="30" {% if dias == 30 %}selected{% endif %}>30 días</option>
+          <option value="90" {% if dias == 90 %}selected{% endif %}>90 días</option>
+        </select>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card red">
+    <div class="stat-label">Warrants Activos</div>
+    <div class="stat-value">{{ warrants_activos }}</div>
+    <div class="stat-sub">órdenes de arresto nacionales</div>
+    <div class="stat-icon">⚖️</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-label">Alertas Prófugos</div>
+    <div class="stat-value">{{ alertas_activas }}</div>
+    <div class="stat-sub">individuos buscados activos</div>
+    <div class="stat-icon">🚨</div>
+  </div>
+  <div class="stat-card cyan">
+    <div class="stat-label">Detenciones ({{ dias }}d)</div>
+    <div class="stat-value">{{ detenciones_mes }}</div>
+    <div class="stat-sub">bookings registrados</div>
+    <div class="stat-icon">📋</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Total Sujetos</div>
+    <div class="stat-value">{{ total_sujetos }}</div>
+    <div class="stat-sub">perfiles en índice</div>
+    <div class="stat-icon">👤</div>
+  </div>
+  {% if warrants_ejecutados is defined %}
+  <div class="stat-card green">
+    <div class="stat-label">Warrants Ejecutados ({{ dias }}d)</div>
+    <div class="stat-value">{{ warrants_ejecutados }}</div>
+    <div class="stat-sub">capturas confirmadas</div>
+    <div class="stat-icon">✅</div>
+  </div>
+  {% endif %}
+  {% if comisarias_en_linea is defined %}
+  <div class="stat-card cyan">
+    <div class="stat-label">Comisarías en Línea</div>
+    <div class="stat-value">{{ comisarias_en_linea }}</div>
+    <div class="stat-sub">nodos activos intranet</div>
+    <div class="stat-icon">🌐</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if alertas_criticas is defined and alertas_criticas %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title" style="color:var(--red)">🚨 Alertas Críticas Activas</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujeto</th><th>DNI</th><th>Provincia Emisora</th><th>Emitida</th></tr></thead>
+      <tbody>
+        {% for a in alertas_criticas %}
+        <tr>
+          <td class="font-bold">{{ a.sujeto_nombres }} {{ a.sujeto_apellidos }}</td>
+          <td class="td-mono">{{ a.sujeto_dni or '—' }}</td>
+          <td class="td-mono">{{ a.provincia_origen }}</td>
+          <td class="td-mono text-xs">{{ a.creada_en.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if top_warrants is defined and top_warrants %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">⚖️ Warrants Activos Recientes</div>
+    <a href="{{ url_for('warrants.lista') }}" class="btn btn-ghost btn-sm">Ver todos →</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujeto</th><th>Descripción</th><th>Provincia</th><th>Urgencia</th><th>Emitido</th></tr></thead>
+      <tbody>
+        {% for w in top_warrants %}
+        <tr>
+          <td class="font-bold">{{ w.sujeto.nombre_completo }}</td>
+          <td>{{ w.descripcion[:60] }}{% if w.descripcion|length > 60 %}…{% endif %}</td>
+          <td class="td-mono">{{ w.provincia_emisora }}</td>
+          <td><span class="badge {% if w.nivel_urgencia == 'critico' %}red{% elif w.nivel_urgencia == 'urgente' %}amber{% else %}cyan{% endif %}">{{ w.nivel_urgencia|upper }}</span></td>
+          <td class="td-mono text-xs">{{ w.fecha_emision.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if alertas is defined and alertas %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">🚨 Alertas de Prófugos</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujeto</th><th>DNI</th><th>Provincia Emisora</th><th>Urgencia</th><th>Emitida</th></tr></thead>
+      <tbody>
+        {% for a in alertas %}
+        <tr>
+          <td class="font-bold">{{ a.sujeto_nombres }} {{ a.sujeto_apellidos }}</td>
+          <td class="td-mono">{{ a.sujeto_dni or '—' }}</td>
+          <td class="td-mono">{{ a.provincia_origen }}</td>
+          <td><span class="badge {% if a.nivel_urgencia == 'critico' %}red{% elif a.nivel_urgencia == 'urgente' %}amber{% else %}cyan{% endif %}">{{ a.nivel_urgencia|upper }}</span></td>
+          <td class="td-mono text-xs">{{ a.creada_en.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if ultimas_detenciones is defined and ultimas_detenciones %}
+<div class="card">
+  <div class="card-header"><div class="card-title">📋 Detenciones Recientes</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sujeto</th><th>Motivo</th><th>Estado</th><th>Fecha</th></tr></thead>
+      <tbody>
+        {% for d in ultimas_detenciones %}
+        <tr>
+          <td class="font-bold">{{ d.sujeto.nombre_completo }}</td>
+          <td>{{ d.motivo[:60] }}{% if d.motivo|length > 60 %}…{% endif %}</td>
+          <td><span class="badge {% if d.estado == 'activo' %}cyan{% elif d.estado == 'liberado' %}gray{% else %}amber{% endif %}">{{ d.estado }}</span></td>
+          <td class="td-mono text-xs">{{ d.fecha_detencion.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

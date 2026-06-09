@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-header-left"><div class="page-title">📈 Estadísticas — Últimos 30 Días</div></div></div>
+<div class="stats-grid">
+  <div class="stat-card cyan"><div class="stat-label">Detenciones</div><div class="stat-value">{{ detenciones_mes }}</div><div class="stat-icon">📋</div></div>
+  <div class="stat-card red"><div class="stat-label">Warrants Activos</div><div class="stat-value">{{ warrants_activos }}</div><div class="stat-icon">⚖️</div></div>
+  <div class="stat-card green"><div class="stat-label">Warrants Ejecutados</div><div class="stat-value">{{ warrants_ejecutados_mes }}</div><div class="stat-icon">✅</div></div>
+</div>
+{% if top_delitos %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Top Delitos (30 días)</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Delito</th><th>Casos</th></tr></thead>
+      <tbody>
+        {% for nombre, total in top_delitos %}
+        <tr><td>{{ nombre }}</td><td class="td-mono font-bold">{{ total }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

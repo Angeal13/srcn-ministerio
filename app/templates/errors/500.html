@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Error 500{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-code">500</div>
+  {% if 500 == 403 %}
+  <div class="error-title">Acceso denegado</div>
+  <div class="error-sub">No tiene permisos para acceder a este recurso.</div>
+  {% elif 500 == 404 %}
+  <div class="error-title">Recurso no encontrado</div>
+  <div class="error-sub">El registro solicitado no existe en este nodo.</div>
+  {% elif 500 == 500 %}
+  <div class="error-title">Error interno del sistema</div>
+  <div class="error-sub">El incidente ha sido registrado. Contacte al administrador.</div>
+  {% else %}
+  <div class="error-title">Demasiadas solicitudes</div>
+  <div class="error-sub">Espere un momento antes de continuar.</div>
+  {% endif %}
+  <a href="{{ url_for('sujetos.dashboard') }}" class="btn btn-ghost" style="margin-top:1.5rem">Volver al inicio</a>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Red / Sync{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-header-left"><div class="page-title">🌐 Estado de Red y Sincronización</div></div></div>
+<div class="stats-grid">
+  <div class="stat-card {% if pendientes > 0 %}amber{% else %}green{% endif %}">
+    <div class="stat-label">Pendientes Sync</div>
+    <div class="stat-value">{{ pendientes }}</div>
+    <div class="stat-icon">⏳</div>
+  </div>
+  <div class="stat-card {% if errores > 0 %}red{% else %}green{% endif %}">
+    <div class="stat-label">Errores</div>
+    <div class="stat-value">{{ errores }}</div>
+    <div class="stat-icon">⚠</div>
+  </div>
+</div>
+{% if nodos %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Nodos Conectados</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nodo</th><th>IP</th><th>Estado</th><th>Último contacto</th></tr></thead>
+      <tbody>
+        {% for n in nodos %}
+        <tr>
+          <td class="font-bold">{{ n.nombre }}</td>
+          <td class="td-mono">{{ n.ip_lan }}:{{ n.puerto_lan }}</td>
+          <td><span class="badge {% if n.en_linea %}green{% else %}red{% endif %}">{% if n.en_linea %}En línea{% else %}Sin conexión{% endif %}</span></td>
+          <td class="td-mono text-xs">{{ n.ultimo_contacto.strftime('%d/%m/%Y %H:%M') if n.ultimo_contacto else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

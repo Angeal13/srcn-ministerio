@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Alertas Prófugos{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Alertas de Prófugos Nacionales</div>
+    <div class="page-breadcrumb">Individuos buscados con warrant activo — todas las provincias</div>
+  </div>
+</div>
+{% if alertas %}
+<div style="display:flex;flex-direction:column;gap:.75rem">
+  {% for a in alertas %}
+  <div class="card" style="border-left:3px solid {% if a.nivel_urgencia == 'critico' %}var(--red){% elif a.nivel_urgencia == 'urgente' %}var(--amber){% else %}var(--cyan){% endif %}">
+    <div class="card-body" style="display:flex;align-items:center;gap:1rem">
+      <div style="font-size:2rem">🚨</div>
+      <div style="flex:1">
+        <div class="font-bold" style="font-size:1rem">{{ a.sujeto_nombres }} {{ a.sujeto_apellidos }}</div>
+        <div class="text-sm text-dim">DNI: {{ a.sujeto_dni or 'N/D' }} · Provincia emisora: {{ a.provincia_origen }} · {{ a.creada_en.strftime('%d/%m/%Y %H:%M') }}</div>
+        {% if a.descripcion_breve %}<div class="text-sm" style="margin-top:.35rem">{{ a.descripcion_breve }}</div>{% endif %}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.4rem;flex-shrink:0">
+        <span class="badge {% if a.nivel_urgencia == 'critico' %}red{% elif a.nivel_urgencia == 'urgente' %}amber{% else %}cyan{% endif %}">{{ a.nivel_urgencia|upper }}</span>
+        <span class="badge gray">UUID: {{ a.warrant_uuid[:8] }}…</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon">✅</div>
+  <div class="empty-state-title">Sin alertas de prófugos activas</div>
+  <div class="empty-state-sub">No hay individuos buscados con warrant activo en este momento</div>
+</div>
+{% endif %}
+{% endblock %}

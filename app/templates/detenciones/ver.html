@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Detención — {{ detencion.sujeto.numero_expediente }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb"><a href="{{ url_for('sujetos.ver', id=detencion.sujeto.id) }}">{{ detencion.sujeto.nombre_completo }}</a> <span>›</span> Detención</div>
+    <div class="page-title">Registro de Detención</div>
+  </div>
+  <div class="flex gap-1">
+    {% if detencion.estado == 'activo' and current_user.es_jefe %}
+    <a href="{{ url_for('transferencias.nueva', detencion_id=detencion.id) }}" class="btn btn-ghost">🔀 Transferir</a>
+    <button type="button" class="btn btn-danger" onclick="document.getElementById('modal-liberar').style.display='flex'" >Liberar detenido</button>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem">
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+    <div class="subject-header">
+      <div class="subject-avatar {% if detencion.sujeto.es_buscado %}buscado{% endif %}">👤</div>
+      <div>
+        <div class="subject-name">{{ detencion.sujeto.nombre_completo }}</div>
+        <div class="subject-id">{{ detencion.sujeto.numero_expediente }}</div>
+        <div class="subject-meta">
+          {% if detencion.sujeto.es_buscado %}<span class="buscado-indicator"><span class="buscado-dot"></span>BUSCADO</span>{% endif %}
+          <span class="badge {% if detencion.estado == 'activo' %}cyan{% elif detencion.estado == 'liberado' %}gray{% else %}amber{% endif %}">
+            {{ detencion.estado|upper }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">📋 Datos de la Detención</div></div>
+      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
+        <div><div class="text-xs text-muted">Motivo</div><div class="font-bold">{{ detencion.motivo }}</div></div>
+        <div><div class="text-xs text-muted">Lugar</div><div>{{ detencion.lugar_detencion or '—' }}</div></div>
+        <div><div class="text-xs text-muted">Fecha / Hora</div><div class="font-mono text-sm">{{ detencion.fecha_detencion.strftime('%d/%m/%Y %H:%M') }}</div></div>
+        <div><div class="text-xs text-muted">Agente</div><div>{{ detencion.agente.nombre_completo }}</div></div>
+        <div><div class="text-xs text-muted">Comisaría</div><div>{{ detencion.comisaria.nombre if detencion.comisaria else '—' }}</div></div>
+        <div><div class="text-xs text-muted">UUID</div><div class="font-mono text-xs text-dim">{{ detencion.uuid[:16] }}…</div></div>
+        {% if detencion.descripcion %}
+        <div style="grid-column:1/-1"><div class="text-xs text-muted">Observaciones</div><div>{{ detencion.descripcion }}</div></div>
+        {% endif %}
+        {% if detencion.fecha_liberacion %}
+        <div><div class="text-xs text-muted">Liberado</div><div class="font-mono text-sm">{{ detencion.fecha_liberacion.strftime('%d/%m/%Y %H:%M') }}</div></div>
+        <div><div class="text-xs text-muted">Motivo liberación</div><div>{{ detencion.motivo_liberacion or '—' }}</div></div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if detencion.cargos.count() %}
+    <div class="card">
+      <div class="card-header"><div class="card-title">⚖️ Cargos</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Delito</th><th>Categoría</th><th>Estado</th></tr></thead>
+          <tbody>
+            {% for cargo in detencion.cargos %}
+            <tr>
+              <td>{{ cargo.categoria.nombre }}</td>
+              <td><span class="badge {% if cargo.categoria.gravedad == 'crimen' %}red{% elif cargo.categoria.gravedad == 'delito_grave' %}amber{% else %}gray{% endif %}">{{ cargo.categoria.gravedad }}</span></td>
+              <td><span class="badge {% if cargo.estado == 'confirmado' %}green{% elif cargo.estado == 'retirado' %}gray{% else %}cyan{% endif %}">{{ cargo.estado }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🔗 Acciones</div></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:.5rem">
+      <a href="{{ url_for('sujetos.ver', id=detencion.sujeto.id) }}" class="btn btn-ghost w-full" style="justify-content:center">Ver perfil completo</a>
+      {% if not detencion.sujeto.es_buscado and current_user.puede_emitir_warrant %}
+      <a href="{{ url_for('warrants.nuevo', sujeto_id=detencion.sujeto.id) }}" class="btn btn-danger w-full" style="justify-content:center">⚖ Emitir Warrant</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal liberar -->
+<div id="modal-liberar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:center;justify-content:center">
+  <div class="card" style="max-width:400px;width:90%">
+    <div class="card-header"><div class="card-title">Liberar Detenido</div></div>
+    <form method="POST" action="{{ url_for('detenciones.liberar', id=detencion.id) }}">
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Motivo de liberación <span class="required">*</span></label>
+          <textarea name="motivo_liberacion" class="form-control" required rows="3" placeholder="Motivo oficial de la liberación…"></textarea>
+        </div>
+      </div>
+      <div class="card-footer flex gap-1">
+        <button type="submit" class="btn btn-danger">Confirmar liberación</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-liberar').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

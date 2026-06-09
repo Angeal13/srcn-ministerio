@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Emitir Warrant — {{ sujeto.nombre_completo }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Emitir Orden de Arresto</div>
+    <div class="page-breadcrumb"><a href="{{ url_for('sujetos.ver', id=sujeto.id) }}">{{ sujeto.nombre_completo }}</a> <span>›</span> Nuevo Warrant</div>
+  </div>
+</div>
+<div class="alert-banner warning">⚠ Esta acción propagará una alerta de prófugo a todas las provincias del país automáticamente.</div>
+<form method="POST">
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;align-items:start">
+    <div class="card">
+      <div class="card-header"><div class="card-title">⚖️ Datos de la Orden de Arresto</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">N° Expediente Judicial</label><input type="text" name="numero_judicial" class="form-control" placeholder="Ej. EXP-2026-00123"></div>
+          <div class="form-group"><label class="form-label">Juez Emisor</label><input type="text" name="juez_emisor" class="form-control"></div>
+          <div class="form-group full"><label class="form-label">Tribunal</label><input type="text" name="tribunal" class="form-control" placeholder="Juzgado de Primera Instancia de Malabo…"></div>
+          <div class="form-group full">
+            <label class="form-label">Descripción / Delitos <span class="required">*</span></label>
+            <textarea name="descripcion" class="form-control" required rows="4" placeholder="Delitos imputados y circunstancias relevantes…"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nivel de Urgencia</label>
+            <select name="nivel_urgencia" class="form-control">
+              <option value="normal">Normal</option>
+              <option value="urgente">Urgente</option>
+              <option value="critico">Crítico</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Fecha de Expiración (opcional)</label><input type="date" name="fecha_expiracion" class="form-control"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
+      <div class="subject-header">
+        <div class="subject-avatar">👤</div>
+        <div>
+          <div class="subject-name">{{ sujeto.nombre_completo }}</div>
+          <div class="subject-id">{{ sujeto.numero_expediente }}</div>
+          <div class="text-xs text-muted" style="margin-top:.25rem">DNI: {{ sujeto.dni or 'N/D' }}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="display:flex;flex-direction:column;gap:.75rem">
+          <button type="submit" class="btn btn-danger w-full" style="justify-content:center" data-confirm="¿Confirmar emisión del warrant? Esta acción propagará alertas a nivel nacional.">🚨 Emitir Warrant</button>
+          <a href="{{ url_for('sujetos.ver', id=sujeto.id) }}" class="btn btn-ghost w-full" style="justify-content:center">Cancelar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

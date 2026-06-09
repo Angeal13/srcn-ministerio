@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Sujetos{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Sujetos Registrados</div>
+    <div class="page-breadcrumb">SRCN <span>›</span> Sujetos</div>
+  </div>
+  <a href="{{ url_for('sujetos.nuevo') }}" class="btn btn-primary">+ Registrar sujeto</a>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <form class="search-bar" style="flex:1" method="GET">
+      <div class="search-input-wrap" style="flex:1;max-width:380px">
+        <span class="search-icon">🔍</span>
+        <input type="text" name="q" value="{{ busqueda }}" class="form-control" placeholder="Nombre, expediente, DNI…">
+      </div>
+      <select name="nivel_riesgo" class="form-control" style="width:140px">
+        <option value="">Todos los niveles</option>
+        <option value="bajo" {% if nivel_riesgo == 'bajo' %}selected{% endif %}>Bajo</option>
+        <option value="medio" {% if nivel_riesgo == 'medio' %}selected{% endif %}>Medio</option>
+        <option value="alto" {% if nivel_riesgo == 'alto' %}selected{% endif %}>Alto</option>
+        <option value="critico" {% if nivel_riesgo == 'critico' %}selected{% endif %}>Crítico</option>
+      </select>
+      <button type="submit" class="btn btn-ghost">Filtrar</button>
+      {% if busqueda or nivel_riesgo %}<a href="{{ url_for('sujetos.lista') }}" class="btn btn-ghost">✕</a>{% endif %}
+    </form>
+  </div>
+
+  {% if sujetos.items %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Expediente</th>
+          <th>DNI</th>
+          <th>Riesgo</th>
+          <th>Estado</th>
+          <th>Detenciones</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sujetos.items %}
+        <tr>
+          <td>
+            <div class="font-bold">{{ s.apellidos }}, {{ s.nombres }}</div>
+            <div class="text-xs text-muted">{{ s.nacionalidad or '' }}{% if s.edad %} · {{ s.edad }} años{% endif %}</div>
+          </td>
+          <td class="td-mono">{{ s.numero_expediente }}</td>
+          <td class="td-mono">{{ s.dni or '—' }}</td>
+          <td>
+            <span class="risk-{{ s.nivel_riesgo }} font-bold text-xs">{{ s.nivel_riesgo|upper }}</span>
+          </td>
+          <td>
+            {% if s.es_buscado %}
+            <span class="buscado-indicator"><span class="buscado-dot"></span>BUSCADO</span>
+            {% else %}
+            <span class="badge gray">Sin warrant</span>
+            {% endif %}
+          </td>
+          <td class="td-mono">{{ s.detenciones.count() }}</td>
+          <td><a href="{{ url_for('sujetos.ver', id=s.id) }}" class="btn btn-ghost btn-sm">Ver perfil</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer flex justify-between items-center">
+    <span>{{ sujetos.total }} sujeto{% if sujetos.total != 1 %}s{% endif %} · Página {{ sujetos.page }}/{{ sujetos.pages }}</span>
+    <div class="pagination">
+      {% if sujetos.has_prev %}
+      <a href="{{ url_for('sujetos.lista', pagina=sujetos.prev_num, q=busqueda, nivel_riesgo=nivel_riesgo) }}" class="page-btn">‹</a>
+      {% endif %}
+      {% for p in sujetos.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}<a href="{{ url_for('sujetos.lista', pagina=p, q=busqueda, nivel_riesgo=nivel_riesgo) }}" class="page-btn {% if p == sujetos.page %}active{% endif %}">{{ p }}</a>
+        {% else %}<span class="page-btn" style="pointer-events:none">…</span>{% endif %}
+      {% endfor %}
+      {% if sujetos.has_next %}
+      <a href="{{ url_for('sujetos.lista', pagina=sujetos.next_num, q=busqueda, nivel_riesgo=nivel_riesgo) }}" class="page-btn">›</a>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">👤</div>
+    <div class="empty-state-title">Sin resultados</div>
+    <div class="empty-state-sub">{% if busqueda %}No se encontraron sujetos para "{{ busqueda }}"{% else %}No hay sujetos registrados{% endif %}</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

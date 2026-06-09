@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ sujeto.nombre_completo }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb"><a href="{{ url_for('sujetos.lista') }}">Sujetos</a> <span>›</span> {{ sujeto.numero_expediente }}</div>
+    <div class="page-title">{{ sujeto.nombre_completo }}</div>
+  </div>
+  <div class="flex gap-1">
+    {% if current_user.es_jefe %}
+    <a href="{{ url_for('sujetos.editar', id=sujeto.id) }}" class="btn btn-ghost">✏ Editar</a>
+    {% endif %}
+    {% if current_user.puede_emitir_warrant and not sujeto.es_buscado %}
+    <a href="{{ url_for('warrants.nuevo', sujeto_id=sujeto.id) }}" class="btn btn-danger">⚖ Emitir Warrant</a>
+    {% endif %}
+    <a href="{{ url_for('detenciones.nueva', sujeto_id=sujeto.id) }}" class="btn btn-primary">+ Nueva Detención</a>
+  </div>
+</div>
+
+{% if warrant_activo %}
+<div class="warrant-alert">
+  <div class="warrant-alert-icon">🚨</div>
+  <div class="warrant-alert-text">
+    <div class="label">Warrant Activo — Emitido por {{ warrant_activo.provincia_emisora }}</div>
+    <div class="subject">ORDEN DE ARRESTO VIGENTE</div>
+    <div class="meta">
+      N° Judicial: {{ warrant_activo.numero_judicial or 'N/D' }} · 
+      Urgencia: {{ warrant_activo.nivel_urgencia|upper }} · 
+      Emitido: {{ warrant_activo.fecha_emision.strftime('%d/%m/%Y') }}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+  <!-- Left: Profile -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+    <div class="subject-header">
+      <div class="subject-avatar {% if sujeto.es_buscado %}buscado{% endif %}">👤</div>
+      <div class="subject-info">
+        <div class="subject-name">{{ sujeto.apellidos }}, {{ sujeto.nombres }}</div>
+        <div class="subject-id">{{ sujeto.numero_expediente }}</div>
+        <div class="subject-meta">
+          {% if sujeto.es_buscado %}
+          <span class="buscado-indicator"><span class="buscado-dot"></span>BUSCADO</span>
+          {% endif %}
+          <span class="badge {% if sujeto.nivel_riesgo == 'critico' %}red{% elif sujeto.nivel_riesgo == 'alto' %}red{% elif sujeto.nivel_riesgo == 'medio' %}amber{% else %}green{% endif %}">
+            Riesgo {{ sujeto.nivel_riesgo|upper }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">📄 Datos Personales</div></div>
+      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div><div class="text-xs text-muted">DNI</div><div class="font-mono">{{ sujeto.dni or '—' }}</div></div>
+        <div><div class="text-xs text-muted">Edad</div><div>{{ sujeto.edad or '—' }}</div></div>
+        <div><div class="text-xs text-muted">Sexo</div><div>{{ 'Masculino' if sujeto.sexo == 'M' else 'Femenino' if sujeto.sexo == 'F' else '—' }}</div></div>
+        <div><div class="text-xs text-muted">Nacionalidad</div><div>{{ sujeto.nacionalidad or '—' }}</div></div>
+        <div><div class="text-xs text-muted">Dirección</div><div>{{ sujeto.direccion or '—' }}</div></div>
+        <div><div class="text-xs text-muted">Teléfono</div><div>{{ sujeto.telefono or '—' }}</div></div>
+        <div><div class="text-xs text-muted">Registrado</div><div class="font-mono text-xs">{{ sujeto.creado_en.strftime('%d/%m/%Y') }}</div></div>
+        <div><div class="text-xs text-muted">Sync</div>
+          <div>{% if sujeto.sincronizado %}<span class="badge green">Sincronizado</span>{% else %}<span class="badge amber">Pendiente</span>{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Detenciones + Warrants -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📋 Historial de Detenciones ({{ detenciones|length }})</div>
+      </div>
+      {% if detenciones %}
+      <div class="timeline" style="padding:0 1.25rem">
+        {% for d in detenciones %}
+        <div class="timeline-item">
+          <div class="timeline-dot {% if d.estado == 'activo' %}red{% elif d.estado == 'liberado' %}gray{% else %}amber{% endif %}"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">
+              {{ d.motivo[:70] }}{% if d.motivo|length > 70 %}…{% endif %}
+              <span class="badge {% if d.estado == 'activo' %}cyan{% elif d.estado == 'liberado' %}gray{% else %}amber{% endif %}" style="margin-left:.4rem">{{ d.estado }}</span>
+            </div>
+            <div class="timeline-meta">{{ d.fecha_detencion.strftime('%d/%m/%Y %H:%M') }} · {{ d.comisaria.nombre if d.comisaria else 'N/D' }} · <a href="{{ url_for('detenciones.ver', id=d.id) }}">Ver →</a></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:1.5rem">
+        <div class="empty-state-title">Sin detenciones previas</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⚖️ Warrants ({{ warrants|length }})</div>
+      </div>
+      {% if warrants %}
+      <div class="timeline" style="padding:0 1.25rem">
+        {% for w in warrants %}
+        <div class="timeline-item">
+          <div class="timeline-dot {% if w.estado == 'activo' %}red{% elif w.estado == 'ejecutado' %}green{% else %}gray{% endif %}"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">
+              {{ w.descripcion[:60] }}{% if w.descripcion|length > 60 %}…{% endif %}
+              <span class="badge {% if w.estado == 'activo' %}red{% elif w.estado == 'ejecutado' %}green{% else %}gray{% endif %}" style="margin-left:.4rem">{{ w.estado }}</span>
+            </div>
+            <div class="timeline-meta">{{ w.provincia_emisora }} · {{ w.fecha_emision.strftime('%d/%m/%Y') }}
+              {% if w.activo and current_user.es_jefe %}
+              <form method="POST" action="{{ url_for('warrants.cancelar', id=w.id) }}" style="display:inline">
+                <input type="hidden" name="motivo" value="Cancelado por {{ current_user.nombre_completo }}">
+                <button type="submit" class="btn btn-ghost btn-sm" style="margin-left:.5rem;padding:1px 6px" data-confirm="¿Cancelar este warrant?">Cancelar</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:1.5rem">
+        <div class="empty-state-title">Sin warrants</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

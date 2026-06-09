@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Administración{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-header-left"><div class="page-title">⚙ Administración del Sistema</div></div></div>
+<div class="stats-grid">
+  <div class="stat-card cyan"><div class="stat-label">Usuarios</div><div class="stat-value">{{ usuarios }}</div><div class="stat-icon">👮</div></div>
+  <div class="stat-card green"><div class="stat-label">Comisarías</div><div class="stat-value">{{ comisarias }}</div><div class="stat-icon">🏛️</div></div>
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Acciones</div></div>
+  <div class="card-body" style="display:flex;flex-direction:column;gap:.5rem;max-width:320px">
+    <a href="{{ url_for('admin.usuarios') }}" class="btn btn-ghost">👮 Gestionar usuarios</a>
+    <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary">+ Nuevo usuario</a>
+    <a href="{{ url_for('red.panel') }}" class="btn btn-ghost">🌐 Estado de red</a>
+  </div>
+</div>
+{% endblock %}
